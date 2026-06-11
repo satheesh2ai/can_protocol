@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CAN Protocol Guide – Test Philosophy</title>
+<style>
+  /* ── Google Fonts ── */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  /* ── Brand Tokens ── */
+  :root {
+    --navy:      #0D1B3E;
+    --navy-mid:  #162347;
+    --navy-lite: #1E2F5C;
+    --cyan:      #00D4E8;
+    --cyan-dim:  #00A8BF;
+    --silver:    #8EAEC8;
+    --white:     #F0F6FF;
+    --text:      #CBD8EE;
+    --card-bg:   #162347cc;
+    --border:    #00D4E820;
+    --accent:    #00D4E8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── TOP BRAND BANNER ── */
+  .brand-banner {
+    background: linear-gradient(135deg, #0a1428 0%, #0D1B3E 50%, #0a1f3d 100%);
+    border-bottom: 2px solid var(--cyan);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .brand-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 20% 50%, #00D4E810 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 80% 30%, #00A8BF08 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Grid lines overlay */
+  .brand-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,232,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,232,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .brand-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px 28px;
+    display: flex;
+    align-items: center;
+    gap: 36px;
+  }
+
+  .brand-logo-wrap {
+    flex-shrink: 0;
+    width: 160px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-logo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 18px rgba(0,212,232,0.35));
+  }
+
+  /* SVG fallback logo (shown if image fails) */
+  .logo-svg-fallback {
+    display: none;
+    width: 160px;
+    height: 90px;
+  }
+
+  .brand-text-block {
+    flex: 1;
+  }
+
+  .brand-eyebrow {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 6px;
+    opacity: 0.85;
+  }
+
+  .brand-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .brand-title span {
+    color: var(--cyan);
+    text-shadow: 0 0 30px rgba(0,212,232,0.5);
+  }
+
+  .brand-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--silver);
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+
+  .brand-organizer {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,212,232,0.08);
+    border: 1px solid rgba(0,212,232,0.2);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: var(--cyan);
+    font-weight: 500;
+  }
+
+  .brand-organizer svg {
+    flex-shrink: 0;
+  }
+
+  /* ── NAV ── */
+  .top-nav {
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+  }
+
+  .top-nav ul {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    list-style: none;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .top-nav ul li a {
+    display: block;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--silver);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .top-nav ul li a:hover {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  /* ── SECTION HEADINGS ── */
+  h1, h2, h3, h4 {
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  h2 {
+    font-size: 26px;
+    margin: 48px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 22px;
+    background: var(--cyan);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 19px;
+    margin: 30px 0 12px;
+    color: var(--cyan-dim);
+  }
+
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    color: var(--white);
+  }
+
+  p { margin-bottom: 14px; }
+
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: rgba(0,212,232,0.06);
+    border-left: 3px solid var(--cyan);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  .warn-box {
+    background: rgba(255,180,0,0.06);
+    border-left: 3px solid #FFB400;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #FFDEA0;
+  }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13.5px;
+  }
+
+  th {
+    background: var(--navy-lite);
+    color: var(--cyan);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(0,212,232,0.07);
+    vertical-align: top;
+  }
+
+  tr:hover td { background: rgba(0,212,232,0.04); }
+
+  /* ── CODE ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: rgba(0,212,232,0.09);
+    color: var(--cyan);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: #0a1224;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    color: #a8d4e0;
+    line-height: 1.6;
+    margin: 16px 0;
+  }
+
+  pre .comment { color: #4a6a7a; }
+  pre .keyword { color: #00D4E8; }
+  pre .value   { color: #7dd3aa; }
+
+  /* ── FRAME DIAGRAM ── */
+  .frame-diagram {
+    background: #080f1e;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+
+  .frame-bits {
+    display: flex;
+    gap: 3px;
+    min-width: 600px;
+  }
+
+  .bit-block {
+    flex: 1;
+    text-align: center;
+  }
+
+  .bit-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--silver);
+    margin-bottom: 6px;
+  }
+
+  .bit-bar {
+    height: 36px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .bit-size {
+    font-size: 10px;
+    color: #4a6a7a;
+    margin-top: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* bit-bar color variants */
+  .bb-sof   { background: #005d70; border-color: #00D4E8; }
+  .bb-id    { background: #004d90; border-color: #3399ff; }
+  .bb-rtr   { background: #3a2060; border-color: #9966cc; }
+  .bb-ctrl  { background: #005040; border-color: #00cc88; }
+  .bb-data  { background: #2d4a00; border-color: #88cc00; }
+  .bb-crc   { background: #5a3300; border-color: #ffaa00; }
+  .bb-ack   { background: #5a0000; border-color: #ff4444; }
+  .bb-eof   { background: #2a2a2a; border-color: #888; }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-cyan   { background: rgba(0,212,232,0.15); color: var(--cyan); }
+  .badge-green  { background: rgba(0,200,100,0.15); color: #00cc77; }
+  .badge-yellow { background: rgba(255,180,0,0.15);  color: #FFBB00; }
+  .badge-red    { background: rgba(255,60,60,0.15);  color: #ff6666; }
+
+  /* ── LIST ── */
+  ul, ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+
+  li { margin-bottom: 6px; }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 80px;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    text-align: center;
+    background: var(--navy-mid);
+  }
+
+  .footer-logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .footer-logo span { color: var(--cyan); }
+
+  .footer-sub {
+    font-size: 13px;
+    color: var(--silver);
+    margin-bottom: 12px;
+  }
+
+  .footer-org {
+    font-size: 12px;
+    color: rgba(0,212,232,0.6);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .brand-inner { flex-direction: column; text-align: center; padding: 24px 20px; }
+    .brand-logo-wrap { width: 120px; height: 75px; }
+    .page-wrap { padding: 24px 20px 60px; }
+    .top-nav { padding: 0 16px; }
+    .footer { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     BRAND BANNER
+══════════════════════════════════════════ -->
+<header class="brand-banner">
+  <div class="brand-inner">
+
+    <!-- Logo image (uploaded PNG) -->
+    <div class="brand-logo-wrap">
+      <img
+        src="Gemini_Generated_Image_jhs9i0jhs9i0jhs9.png"
+        alt="Test Philosophy Logo"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      />
+      <!-- Inline SVG fallback that mirrors the logo style -->
+      <svg class="logo-svg-fallback" viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg">
+        <!-- Car silhouette simplified -->
+        <ellipse cx="80" cy="58" rx="62" ry="22" fill="#162347"/>
+        <path d="M30 52 Q55 28 90 28 Q115 28 130 40 L140 52 Z" fill="#1E2F5C"/>
+        <!-- Cyan network lines -->
+        <polyline points="38,46 60,36 85,36 115,46" fill="none" stroke="#00D4E8" stroke-width="2" stroke-linecap="round"/>
+        <line x1="60" y1="36" x2="60" y2="52" stroke="#00D4E8" stroke-width="1.5" opacity="0.6"/>
+        <line x1="85" y1="36" x2="85" y2="52" stroke="#00D4E8" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="38" cy="46" r="3" fill="#00D4E8"/>
+        <circle cx="60" cy="36" r="3" fill="#00D4E8"/>
+        <circle cx="85" cy="36" r="3" fill="#00D4E8"/>
+        <circle cx="115" cy="46" r="3" fill="#00A8BF"/>
+        <!-- Wheels -->
+        <circle cx="50" cy="68" r="10" fill="#0D1B3E" stroke="#8EAEC8" stroke-width="1.5"/>
+        <circle cx="110" cy="68" r="10" fill="#0D1B3E" stroke="#8EAEC8" stroke-width="1.5"/>
+      </svg>
+    </div>
+
+    <div class="brand-text-block">
+      <div class="brand-eyebrow">The Automotive Test Doctrine</div>
+      <div class="brand-title">Test <span>Philosophy</span></div>
+      <div class="brand-tagline">CAN Protocol — A Comprehensive Technical Guide</div>
+      <div class="brand-organizer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Organized by &nbsp;<strong>Satheesh Chandra J</strong>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     NAV
+══════════════════════════════════════════ -->
+<nav class="top-nav">
+  <ul>
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#frame">Frame Structure</a></li>
+    <li><a href="#types">Frame Types</a></li>
+    <li><a href="#arbitration">Arbitration</a></li>
+    <li><a href="#error">Error Handling</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════ -->
+<main class="page-wrap">
+
+  <!-- INTRODUCTION -->
+  <section id="intro">
+    <h2>Introduction to CAN Protocol</h2>
+    <p>
+      <strong>Controller Area Network (CAN)</strong> is a robust, serial communication protocol originally developed by
+      <strong>Bosch</strong> in 1983 and standardized as <strong>ISO 11898</strong>. It enables microcontrollers and
+      devices to communicate with each other without a host computer, making it the backbone of automotive ECU communication
+      and a staple in industrial automation.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>🚗 Why CAN in Automotive?</h4>
+        <p>Modern vehicles contain 70–150 ECUs. CAN provides a cost-effective, noise-resistant, multi-master bus to interconnect them without point-to-point wiring.</p>
+      </div>
+      <div class="card">
+        <h4>⚡ Key Strengths</h4>
+        <ul>
+          <li>Multi-master, broadcast architecture</li>
+          <li>Non-destructive bitwise arbitration</li>
+          <li>Built-in error detection &amp; fault confinement</li>
+          <li>Up to 1 Mbit/s (Classic CAN)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>📐 Standards</h4>
+        <ul>
+          <li><code>ISO 11898-1</code> — Data link layer</li>
+          <li><code>ISO 11898-2</code> — High-speed physical layer</li>
+          <li><code>ISO 11898-3</code> — Low-speed fault-tolerant</li>
+          <li><code>ISO 11898-5/6</code> — CAN FD</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>CAN FD (Flexible Data Rate):</strong> An extension introduced in 2012 supporting payloads up to 64 bytes and data-phase bitrates beyond 1 Mbit/s (typically 2–8 Mbit/s), standardized in ISO 11898-1:2015.
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <h2>Bus Architecture</h2>
+    <p>CAN uses a <strong>two-wire differential bus</strong> (CAN_H and CAN_L). All nodes connect in parallel to this bus. The voltage difference between the two lines encodes dominant (logical 0) and recessive (logical 1) states.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>State</th>
+          <th>CAN_H</th>
+          <th>CAN_L</th>
+          <th>Differential (V<sub>diff</sub>)</th>
+          <th>Logic</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-cyan">Recessive</span></td>
+          <td>2.5 V</td><td>2.5 V</td><td>0 V</td><td>Bit 1</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">Dominant</span></td>
+          <td>3.5 V</td><td>1.5 V</td><td>2.0 V</td><td>Bit 0</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Bus termination resistors of <strong>120 Ω</strong> are placed at each end of the bus to prevent signal reflections. The characteristic impedance of the CAN cable is 120 Ω.</p>
+
+    <h3>Network Topology</h3>
+    <div class="frame-diagram">
+      <pre>
+  ECU 1          ECU 2          ECU 3          ECU 4
+  [Node]         [Node]         [Node]         [Node]
+    |              |              |              |
+  120Ω ──────────────────────────────────────── 120Ω
+       CAN_H ═══════════════════════════════
+       CAN_L ═══════════════════════════════
+      </pre>
+    </div>
+  </section>
+
+  <!-- FRAME STRUCTURE -->
+  <section id="frame">
+    <h2>CAN Frame Structure</h2>
+    <p>A CAN data frame consists of multiple fields. The standard (11-bit ID) frame and extended (29-bit ID) frame share the same basic structure with slight differences in the identifier and control fields.</p>
+
+    <div class="frame-diagram">
+      <div class="frame-bits">
+        <div class="bit-block">
+          <div class="bit-label">SOF</div>
+          <div class="bit-bar bb-sof">SOF</div>
+          <div class="bit-size">1 bit</div>
+        </div>
+        <div class="bit-block">
+          <div class="bit-label">Identifier</div>
+          <div class="bit-bar bb-id">ID[10:0]</div>
+          <div class="bit-size">11 / 29 bits</div>
+        </div>
+        <div class="bit-block">
+          <div class="bit-label">RTR</div>
+          <div class="bit-bar bb-rtr">RTR</div>
+          <div class="bit-size">1 bit</div>
+        </div>
+        <div class="bit-block">
+          <div class="bit-label">Control</div>
+          <div class="bit-bar bb-ctrl">DLC</div>
+          <div class="bit-size">6 bits</div>
+        </div>
+        <div class="bit-block">
+          <div class="bit-label">Data</div>
+          <div class="bit-bar bb-data">DATA</div>
+          <div class="bit-size">0–64 bytes</div>
+        </div>
+        <div class="bit-block">
+          <div class="bit-label">CRC</div>
+          <div class="bit-bar bb-crc">CRC</div>
+          <div class="bit-size">15+1 bits</div>
+        </div>
+        <div class="bit-block">
+          <div class="bit-label">ACK</div>
+          <div class="bit-bar bb-ack">ACK</div>
+          <div class="bit-size">2 bits</div>
+        </div>
+        <div class="bit-block">
+          <div class="bit-label">EOF</div>
+          <div class="bit-bar bb-eof">EOF</div>
+          <div class="bit-size">7 bits</div>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Size</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>SOF</code></td><td>1 bit</td><td>Start of Frame — dominant bit marking the beginning of transmission</td></tr>
+        <tr><td><code>Identifier</code></td><td>11 or 29 bits</td><td>Message priority and identity; lower value = higher priority</td></tr>
+        <tr><td><code>RTR</code></td><td>1 bit</td><td>Remote Transmission Request — 0 for data frame, 1 for remote frame</td></tr>
+        <tr><td><code>IDE</code></td><td>1 bit</td><td>Identifier Extension — 0 for standard, 1 for extended frame</td></tr>
+        <tr><td><code>DLC</code></td><td>4 bits</td><td>Data Length Code — number of data bytes (0–8 for Classic, 0–64 for FD)</td></tr>
+        <tr><td><code>Data</code></td><td>0–64 bytes</td><td>Payload bytes (0–8 Classic CAN; up to 64 in CAN FD)</td></tr>
+        <tr><td><code>CRC</code></td><td>15+1 bits</td><td>Cyclic Redundancy Check + delimiter; polynomial x¹⁵+x¹⁴+x¹⁰+…+1</td></tr>
+        <tr><td><code>ACK</code></td><td>2 bits</td><td>Acknowledgment slot + delimiter; any receiver drives dominant to ACK</td></tr>
+        <tr><td><code>EOF</code></td><td>7 bits</td><td>End of Frame — 7 recessive bits</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- FRAME TYPES -->
+  <section id="types">
+    <h2>Frame Types</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h4><span class="badge badge-green">Data Frame</span></h4>
+        <p>The primary frame type, used to carry data from a transmitter to one or all receivers on the bus. Contains 0–8 bytes of payload.</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge badge-cyan">Remote Frame</span></h4>
+        <p>Requests data from another node. The RTR bit is set to recessive (1). The responding node answers with a Data Frame of the same ID.</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge badge-yellow">Error Frame</span></h4>
+        <p>Generated by any node detecting an error. Consists of an Error Flag (6–12 dominant bits) followed by an Error Delimiter (8 recessive bits).</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge badge-red">Overload Frame</span></h4>
+        <p>Provides additional delay between Data or Remote frames. Only generated between frames, never during data transmission.</p>
+      </div>
+    </div>
+
+    <h3>CAN vs CAN FD Comparison</h3>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>Classic CAN</th><th>CAN FD</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Standard</td><td>ISO 11898-1:1993</td><td>ISO 11898-1:2015</td></tr>
+        <tr><td>Max payload</td><td>8 bytes</td><td>64 bytes</td></tr>
+        <tr><td>Arbitration bitrate</td><td>Up to 1 Mbit/s</td><td>Up to 1 Mbit/s</td></tr>
+        <tr><td>Data-phase bitrate</td><td>Same as arbitration</td><td>Up to 8 Mbit/s</td></tr>
+        <tr><td>Bit stuffing</td><td>After 5 equal bits</td><td>Fixed stuffing in CRC field</td></tr>
+        <tr><td>CRC length</td><td>15 bits</td><td>17 or 21 bits</td></tr>
+        <tr><td>Frame efficiency</td><td>Lower</td><td>Significantly higher</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ARBITRATION -->
+  <section id="arbitration">
+    <h2>Bus Arbitration</h2>
+    <p>CAN uses <strong>non-destructive bitwise arbitration</strong> (CSMA/CD+AMP — Carrier Sense Multiple Access with Collision Detection and Arbitration on Message Priority). The dominant bit (0) always wins over a recessive bit (1).</p>
+
+    <div class="info-box">
+      <strong>Arbitration Rule:</strong> A transmitting node that detects its own recessive bit being driven dominant by another node immediately loses arbitration and switches to receive mode — no data is destroyed in the process.
+    </div>
+
+    <pre>
+Node A ID:  <span class="keyword">0 0 0 1 0 1 1 0 0 0 1</span>  (ID = 0x059, lower = higher priority)
+Node B ID:  <span class="value">0 0 0 1 1 0 0 0 0 0 0</span>  (ID = 0x060)
+             ─────────────
+Bus:         0 0 0 1 <span class="comment">← bit 7: A=0 (dominant) B=1 (recessive) → A wins</span>
+             Node B detects mismatch, stops transmitting, becomes receiver
+             Node A continues uninterrupted
+    </pre>
+
+    <p>This ensures the highest-priority message always gets through without corruption, and lower-priority nodes automatically retry when the bus is free.</p>
+  </section>
+
+  <!-- ERROR HANDLING -->
+  <section id="error">
+    <h2>Error Detection &amp; Handling</h2>
+    <p>CAN implements five independent error detection mechanisms, making it extremely reliable even in electrically noisy environments.</p>
+
+    <table>
+      <thead>
+        <tr><th>Error Type</th><th>Detection Method</th><th>Coverage</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Bit Error</strong></td>
+          <td>Transmitter monitors bus; mismatch between sent and read bit</td>
+          <td>Transmission errors</td>
+        </tr>
+        <tr>
+          <td><strong>Stuff Error</strong></td>
+          <td>Violation of bit-stuffing rule (6+ identical bits)</td>
+          <td>Synchronization errors</td>
+        </tr>
+        <tr>
+          <td><strong>CRC Error</strong></td>
+          <td>Calculated CRC ≠ received CRC field</td>
+          <td>Data corruption</td>
+        </tr>
+        <tr>
+          <td><strong>Form Error</strong></td>
+          <td>Fixed-format fields (EOF, ACK delim.) contain illegal bits</td>
+          <td>Frame format violations</td>
+        </tr>
+        <tr>
+          <td><strong>ACK Error</strong></td>
+          <td>Transmitter sees ACK slot remain recessive (no receiver ACK)</td>
+          <td>No valid receivers</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Fault Confinement States</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4><span class="badge badge-green">Error Active</span></h4>
+        <p>Normal operation. TEC &amp; REC both &lt; 128. Node transmits active Error Flags when errors occur.</p>
+        <p><code>TEC &lt; 128 &amp;&amp; REC &lt; 128</code></p>
+      </div>
+      <div class="card">
+        <h4><span class="badge badge-yellow">Error Passive</span></h4>
+        <p>TEC or REC ≥ 128. Node still participates but transmits passive (recessive) Error Flags and waits longer before retransmission.</p>
+        <p><code>TEC ≥ 128 || REC ≥ 128</code></p>
+      </div>
+      <div class="card">
+        <h4><span class="badge badge-red">Bus Off</span></h4>
+        <p>TEC ≥ 256. Node disconnects from the bus. Can recover after 128 × 11 recessive bits (requires host intervention).</p>
+        <p><code>TEC ≥ 256</code></p>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠ TEC/REC Counters:</strong> Transmit Error Counter (TEC) increments by 8 for each transmit error and decrements by 1 on successful transmission. Receive Error Counter (REC) follows similar rules but with different weights. These asymmetric weights ensure transient errors don't prematurely push nodes to Bus Off.
+    </div>
+  </section>
+
+  <!-- TESTING -->
+  <section id="testing">
+    <h2>CAN Testing &amp; Verification</h2>
+    <p>As <em>Test Philosophy — The Automotive Test Doctrine</em>, rigorous testing of CAN networks ensures ECU interoperability, timing correctness, and fault resilience across the vehicle lifecycle.</p>
+
+    <h3>Test Levels</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>🔬 Unit Testing</h4>
+        <ul>
+          <li>Message encoding/decoding validation</li>
+          <li>Signal scaling and range checks</li>
+          <li>DBC/ARXML database consistency</li>
+          <li>State machine verification</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>🔗 Integration Testing</h4>
+        <ul>
+          <li>Bus load and timing measurement</li>
+          <li>Multi-ECU interaction scenarios</li>
+          <li>NM (Network Management) testing</li>
+          <li>UDS/ISO 14229 service validation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>🛡 Robustness Testing</h4>
+        <ul>
+          <li>Error frame injection</li>
+          <li>Bus-off recovery validation</li>
+          <li>Babbling idiot simulation</li>
+          <li>EMC/EMI susceptibility tests</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Key Test Metrics</h3>
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>Target</th><th>Measurement Method</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bus Load</td><td>&lt; 30% (typical), &lt; 60% (peak)</td><td>CANalyzer / Vector Tools</td></tr>
+        <tr><td>Message Latency</td><td>Per timing spec (e.g. ±5 ms)</td><td>Oscilloscope / Logic Analyzer</td></tr>
+        <tr><td>Error Frame Rate</td><td>0 in nominal operation</td><td>CAN Analyzer counters</td></tr>
+        <tr><td>TEC/REC Stability</td><td>Both = 0 in steady state</td><td>Diagnostic read via UDS</td></tr>
+        <tr><td>CRC Error Rate</td><td>0 post-fix</td><td>Hardware CAN controller logs</td></tr>
+        <tr><td>Bus Recovery Time</td><td>≤ Spec (ms after Bus Off)</td><td>Timestamp analysis</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sample Test Case: Message Timing</h3>
+    <pre>
+<span class="comment">-- Test: Engine Speed signal (0x200) cycle time validation</span>
+<span class="keyword">Precondition:</span>
+  - Engine running, CAN bus active
+  - Logger connected at 500 kbps
+
+<span class="keyword">Steps:</span>
+  1. Capture 1000 consecutive occurrences of CAN ID 0x200
+  2. Calculate inter-message delta timestamps
+
+<span class="keyword">Expected Result:</span>
+  - Cycle time: <span class="value">10 ms ± 1 ms</span>
+  - Max jitter: <span class="value">± 0.5 ms</span>
+  - No gaps &gt; 15 ms (Timeout = 3× cycle)
+
+<span class="keyword">Pass Criteria:</span>
+  - All 999 deltas within [9.0, 11.0] ms
+  - Zero timeout events detected
+    </pre>
+  </section>
+
+  <!-- TOOLS -->
+  <section id="tools">
+    <h2>Tools &amp; Ecosystem</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h4>🔧 Analysis &amp; Logging</h4>
+        <ul>
+          <li><strong>CANalyzer</strong> — Vector Informatik, industry standard</li>
+          <li><strong>CANoe</strong> — ECU simulation + analysis</li>
+          <li><strong>PCAN-View</strong> — Free, PEAK Hardware</li>
+          <li><strong>SavvyCAN</strong> — Open source, cross-platform</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>📁 Database Formats</h4>
+        <ul>
+          <li><strong>.dbc</strong> — Vector DBC format (most common)</li>
+          <li><strong>.arxml</strong> — AUTOSAR XML</li>
+          <li><strong>.ldf</strong> — LIN Description File</li>
+          <li><strong>.sym</strong> — PEAK symbol files</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>💻 Programming Libraries</h4>
+        <ul>
+          <li><strong>python-can</strong> — Python CAN interface</li>
+          <li><strong>cantools</strong> — Python DBC parsing</li>
+          <li><strong>SocketCAN</strong> — Linux kernel CAN</li>
+          <li><strong>OpenXC</strong> — Ford open platform</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Quick Start: python-can</h3>
+    <pre>
+<span class="keyword">import</span> can
+
+<span class="comment"># Connect to CAN bus (SocketCAN on Linux)</span>
+bus = can.interface.Bus(channel=<span class="value">'can0'</span>, bustype=<span class="value">'socketcan'</span>, bitrate=<span class="value">500000</span>)
+
+<span class="comment"># Send a CAN message</span>
+msg = can.Message(
+    arbitration_id=<span class="value">0x200</span>,
+    data=[<span class="value">0x01, 0x02, 0x03, 0x04</span>],
+    is_extended_id=<span class="value">False</span>
+)
+bus.send(msg)
+
+<span class="comment"># Receive and print messages</span>
+<span class="keyword">for</span> msg <span class="keyword">in</span> bus:
+    <span class="keyword">print</span>(f<span class="value">"ID: {msg.arbitration_id:#05x}  Data: {msg.data.hex()}"</span>)
+    </pre>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <h2>FAQ</h2>
+
+    <div class="card">
+      <h4>Q: What is the maximum number of nodes on a CAN bus?</h4>
+      <p>Theoretically 2032 (11-bit IDs give 2048 addresses, but some are reserved). Practically, bus capacitance and transceiver drive capability limit typical networks to 32–110 nodes.</p>
+    </div>
+
+    <div class="card">
+      <h4>Q: Why is the lower CAN ID higher priority?</h4>
+      <p>Because arbitration is bitwise, and a dominant (0) bit wins over a recessive (1) bit. The node with the most leading 0-bits in its ID dominates the bus first — a lower numerical ID means more dominant bits appear earlier.</p>
+    </div>
+
+    <div class="card">
+      <h4>Q: What happens if two nodes have the same CAN ID?</h4>
+      <p>Both will transmit simultaneously. As long as their data bytes match exactly at every bit position, no error is detected (both transmitters will ACK each other). If data differs, a Bit Error is flagged — this is why unique message IDs are mandatory in proper network design.</p>
+    </div>
+
+    <div class="card">
+      <h4>Q: What is bit stuffing and why is it needed?</h4>
+      <p>After 5 consecutive identical bits, a complementary stuff-bit is inserted by the transmitter (and removed by receivers). This ensures sufficient edges on the bus for clock synchronization across all nodes, which is essential for accurate bit sampling.</p>
+    </div>
+
+    <div class="card">
+      <h4>Q: How does CAN differ from LIN and FlexRay?</h4>
+      <p>LIN is a single-master, single-wire, low-cost bus (20 kbit/s) used for non-critical subsystems like windows and seats. FlexRay is a time-triggered, fault-tolerant protocol supporting up to 10 Mbit/s, used for safety-critical chassis and ADAS systems. CAN sits between them — flexible, deterministic enough, and cost-effective for most ECU communication needs.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-logo">Test <span>Philosophy</span></div>
+  <div class="footer-sub">The Automotive Test Doctrine</div>
+  <div class="footer-org">Organized by <strong>Satheesh Chandra J</strong></div>
+  <div style="margin-top:16px; font-size:11px; color:#2a4060;">
+    CAN Protocol Guide &nbsp;·&nbsp; ISO 11898 Reference &nbsp;·&nbsp; For educational and engineering use
+  </div>
+</footer>
+
+</body>
+</html>
